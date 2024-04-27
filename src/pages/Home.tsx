@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button, Card, FileInput, Textarea } from 'react-daisyui';
 
 export const Home: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -15,35 +16,37 @@ export const Home: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    // Add your encryption and steganography logic here
+    // Logic to hide the message in the uploaded image
     console.log('File:', selectedFile);
     console.log('Message:', message);
   };
 
   return (
-    <div className="bg-white text-black dark:bg-dark-bg dark:text-dark-text min-h-screen flex flex-col items-center justify-center p-6">
-      <h1 className="text-3xl font-bold mb-6">Upload a Picture and Hide a Message</h1>
-      
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="mb-4 border border-gray-300 p-2 rounded dark:border-gray-600"
-      />
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-dark-bg">
+      <Card className="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg">
+        <h1 className="text-2xl font-bold text-center mb-4">Upload an Image and Hide a Secret Message</h1>
+        
+        <FileInput
+          onChange={handleFileChange}
+          className="mb-4"
+          accept="image/*"
+          placeholder="Upload an image"
+        />
 
-      <textarea
-        value={message}
-        onChange={handleMessageChange}
-        placeholder="Enter your secret message"
-        className="w-full h-32 border border-gray-300 p-2 rounded dark:border-gray-600"
-      />
+        <Textarea
+          value={message}
+          onChange={handleMessageChange}
+          placeholder="Enter your secret message"
+          className="w-full mb-4"
+        />
 
-      <button
-        onClick={handleSubmit}
-        className="mt-4 px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-      >
-        Hide Message in Picture
-      </button>
+        <Button
+          onClick={handleSubmit}
+          className="w-full bg-blue-500 text-white hover:bg-blue-600"
+        >
+          Hide Message
+        </Button>
+      </Card>
     </div>
   );
 };
