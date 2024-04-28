@@ -54,7 +54,7 @@ export const useSteganography = () => {
     await new Promise<void>((resolve, reject) => {
       img.onload = () => {
         canvas.width = img.naturalWidth;
-        canvas.height;
+        canvas.height = img.naturalHeight;
         ctx.drawImage(img, 0, 0); // Draw the image on the canvas
         console.log('Image loaded and drawn on canvas');
         resolve();
@@ -125,7 +125,7 @@ export const useSteganography = () => {
     await new Promise<void>((resolve, reject) => {
       img.onload = () => {
         canvas.width = img.naturalWidth;
-        canvas.height;
+        canvas.height = img.naturalHeight;
         ctx.drawImage(img, 0, 0); // Draw the image on the canvas
         console.log('Image loaded and drawn on canvas');
         resolve();

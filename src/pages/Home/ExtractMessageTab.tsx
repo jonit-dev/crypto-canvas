@@ -98,6 +98,16 @@ export const ExtractMessageTab = () => {
         encryptionKeysStore.getPixelKey()!,
       );
 
+      if (!extractedMessage) {
+        modalStore.setModal({
+          type: 'error',
+          title: 'Oops!',
+          message:
+            'No message found on the image or the encryption key is incorrect.',
+        });
+        return;
+      }
+
       modalStore.setModal({
         type: 'success',
         title: 'Success',
