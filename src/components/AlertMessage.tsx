@@ -1,6 +1,7 @@
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
+  ExclamationTriangleIcon,
   InformationCircleIcon,
 } from '@heroicons/react/24/solid';
 import React from 'react';
@@ -11,6 +12,7 @@ const statusIcons = {
   success: <CheckCircleIcon className="w-6 h-6 stroke-success" />,
   error: <ExclamationCircleIcon className="w-6 h-6 stroke-error" />,
   info: <InformationCircleIcon className="w-6 h-6 stroke-info" />,
+  warning: <ExclamationTriangleIcon className="w-6 h-6 stroke-warning" />,
 };
 
 export const AlertMessage: React.FC<IAlertMessage> = ({ status, message }) => {

@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 
-export type StatusType = 'success' | 'error' | 'info';
+export type StatusType = 'success' | 'error' | 'info' | 'warning';
 
 export interface IAlertMessage {
   status: StatusType;

@@ -175,7 +175,8 @@ export const HideMessageTab = () => {
       <Button
         disabled={!selectedFile || !message}
         onClick={handleSubmit}
-        className="w-full bg-blue-500 text-white hover:bg-blue-600"
+        className="w-full"
+        variant="outline"
       >
         Hide Message
       </Button>

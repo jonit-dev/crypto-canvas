@@ -2,7 +2,8 @@ import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
 import { Tabs } from 'react-daisyui'; // Importing Tabs component
 import { ExtractMessageTab } from './ExtractMessageTab';
-import { GenerateEncryptionKeyTab } from './GenerateKeyTab';
+import { GenerateEncryptionKeyTab } from './GenerateEncryptionKeyTab';
+import { GenerateSeedPhraseTab } from './GenerateSeedPhraseTab';
 import { HideMessageTab } from './HideMessageTab';
 
 const TAB_CONTENTS = [
@@ -20,6 +21,12 @@ const TAB_CONTENTS = [
     id: 2,
     title: 'Generate Encryption Key',
     component: <GenerateEncryptionKeyTab />,
+  },
+
+  {
+    id: 3,
+    title: 'Generate Seed Phrase',
+    component: <GenerateSeedPhraseTab />,
   },
 ];
 
@@ -45,7 +52,7 @@ export const HomePage: React.FC = observer(() => {
     });
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 dark:bg-dark-bg">
-      <div className="max-w-md w-full">
+      <div className="max-w-3xl w-full">
         <Tabs variant="boxed" size="md">
           {onRenderTab()}
         </Tabs>

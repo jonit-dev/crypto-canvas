@@ -82,8 +82,6 @@ export const ExtractMessageTab = () => {
       // Convert the Blob to a File
       const imageFile = blobToFile(dataBlob, 'uploaded_image.png');
 
-      console.log(imageFile);
-
       if (!encryptionKeysStore.hasEncryptionKeys) {
         modalStore.setModal({
           type: 'error',
@@ -134,7 +132,8 @@ export const ExtractMessageTab = () => {
       <Button
         disabled={!selectedImageFile}
         onClick={handleSubmit}
-        className="w-full bg-blue-500 text-white hover:bg-blue-600"
+        className="w-full"
+        variant="outline"
       >
         Extract Message
       </Button>
