@@ -1,85 +1,5 @@
 import seedrandom from 'seedrandom';
 
-// Function to encrypt text with a key and return the encrypted data and IV
-// const encryptText = async (
-//   text: string,
-//   key: Uint8Array,
-// ): Promise<{ encrypted: Uint8Array; iv: Uint8Array }> => {
-//   const iv = window.crypto.getRandomValues(new Uint8Array(16)); // Initialization Vector
-//   const algorithm = { name: 'AES-CBC', iv };
-
-//   const cryptoKey = await window.crypto.subtle.importKey(
-//     'raw',
-//     key,
-//     algorithm,
-//     false,
-//     ['encrypt'],
-//   );
-
-//   const encrypted = new Uint8Array(
-//     await window.crypto.subtle.encrypt(
-//       algorithm,
-//       cryptoKey,
-//       new TextEncoder().encode(text),
-//     ),
-//   );
-
-//   return { encrypted, iv };
-// };
-
-// // Function to decrypt text with a key and IV
-// const decryptText = async (
-//   encrypted: Uint8Array,
-//   iv: Uint8Array,
-//   key: Uint8Array,
-// ): Promise<string> => {
-//   const algorithm = { name: 'AES-CBC', iv };
-
-//   const cryptoKey = await window.crypto.subtle.importKey(
-//     'raw',
-//     key,
-//     algorithm,
-//     false,
-//     ['decrypt'],
-//   );
-
-//   const decrypted = new Uint8Array(
-//     await window.crypto.subtle.decrypt(algorithm, cryptoKey, encrypted),
-//   );
-
-//   return new TextDecoder('utf-8').decode(decrypted);
-// };
-
-// Function to generate a pseudo-random sequence of pixel coordinates
-// const generateRandomSequence = (
-//   width: number,
-//   height: number,
-//   pixelKey: Uint8Array,
-// ): [number, number][] => {
-//   const seed = Array.from(pixelKey)
-//     .map((byte) => byte.toString(16).padStart(2, '0'))
-//     .join('');
-
-//   const rng = seedrandom.create(seed); // Initialize PRNG with seed
-//   const totalPixels = width * height; // Ensure total pixel count
-
-//   const sequence: [number, number][] = [];
-//   const usedPixels = new Set<number>();
-
-//   // Ensure rng has a valid range
-//   while (sequence.length < totalPixels) {
-//     const randomIndex = Math.floor(rng(totalPixels)); // Provide the range argument
-//     if (!usedPixels.has(randomIndex)) {
-//       usedPixels.add(randomIndex);
-//       const x = randomIndex % width;
-//       const y = Math.floor(randomIndex / width);
-//       sequence.push([x, y]);
-//     }
-//   }
-
-//   return sequence;
-// };
-
 const generateRandomSequence = (
   width: number,
   height: number,
@@ -114,6 +34,7 @@ export const useSteganography = () => {
   const hideTextInImage = async (
     image: File,
     text: string,
+    encryptedKey: Uint8Array, // Key for encryption
     pixelKey: Uint8Array, // Key for generating random sequence
   ): Promise<File> => {
     const canvas = document.createElement('canvas');
@@ -179,6 +100,7 @@ export const useSteganography = () => {
 
   const extractTextFromImage = async (
     image: File,
+    encryptedKey: Uint8Array, // Key for decryption
     pixelKey: Uint8Array, // Key to generate the same pseudo-random sequence
   ): Promise<string | undefined> => {
     const canvas = document.createElement('canvas');

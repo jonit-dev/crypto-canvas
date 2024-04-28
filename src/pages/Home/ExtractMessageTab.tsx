@@ -96,8 +96,8 @@ export const ExtractMessageTab = () => {
       // Call `extractTextFromImage` with the File type
       const extractedMessage = await extractTextFromImage(
         imageFile,
-        encryptionKeysStore.getPixelKey()!,
         encryptionKeysStore.getEncryptionKey()!,
+        encryptionKeysStore.getPixelKey()!,
       );
 
       modalStore.setModal({
