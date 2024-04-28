@@ -5,6 +5,7 @@ import { useFileHandler } from '../../hooks/useFileHandler';
 import { useGenerateEncryptionKey } from '../../hooks/useGenerateEncryption';
 import { useSteganography } from '../../hooks/useStenography';
 import { encryptionKeysStore } from '../../store/EncryptionKeysStore';
+import { loadingStore } from '../../store/LoadingStore';
 import { modalStore } from '../../store/ModalStore';
 
 export const ExtractMessageTab = () => {
@@ -61,6 +62,11 @@ export const ExtractMessageTab = () => {
     const dataURL = await readFileAsDataURL(selectedImageFile);
 
     try {
+      loadingStore.setLoading(true);
+
+      // Wait for the loading screen to show
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const img = new Image();
       img.src = dataURL;
       await new Promise<void>((resolve) => {
@@ -122,6 +128,8 @@ export const ExtractMessageTab = () => {
         message:
           'An error occurred while extracting the message from the image.',
       });
+    } finally {
+      loadingStore.setLoading(false);
     }
   };
 

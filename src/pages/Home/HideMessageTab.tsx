@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Button, Textarea } from 'react-daisyui';
+import { AlertMessage } from '../../components/AlertMessage';
 import FileInputWithLabel from '../../components/LabeledFileInput';
 import { useFileHandler } from '../../hooks/useFileHandler';
 import { useGenerateEncryptionKey } from '../../hooks/useGenerateEncryption';
 import { useSteganography } from '../../hooks/useStenography';
 import { encryptionKeysStore } from '../../store/EncryptionKeysStore';
+import { loadingStore } from '../../store/LoadingStore';
 import { modalStore } from '../../store/ModalStore';
 
 export const HideMessageTab = () => {
@@ -72,6 +74,11 @@ export const HideMessageTab = () => {
     const dataURL = await readFileAsDataURL(selectedFile);
 
     try {
+      loadingStore.setLoading(true);
+
+      // Wait for the loading screen to show
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const img = new Image();
       img.src = dataURL;
       await new Promise<void>((resolve) => {
@@ -145,15 +152,22 @@ export const HideMessageTab = () => {
         title: 'Error',
         message: 'An error occurred while hiding the message in the image.',
       });
+    } finally {
+      loadingStore.setLoading(false);
     }
   };
 
   return (
     <>
+      <AlertMessage
+        status="warning"
+        message="Compressing the image may result in loss of data. Please make sure to keep the original image."
+      />
+
       <FileInputWithLabel
         labelText="Select your encryption key:"
         onChange={handleEncryptedKeyFileLoad}
-        className="mb-4"
+        className="mb-4 mt-4"
         accept=".key"
         placeholder='Select a ".key" file'
       />
