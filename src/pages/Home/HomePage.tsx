@@ -1,8 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
 import { Tabs } from 'react-daisyui'; // Importing Tabs component
-import { AlertMessage } from '../../components/AlertMessage';
-import { alertStore } from '../../store/AlertStore';
 import { HideMessagePage } from './HideMessagePage';
 
 const TAB_CONTENTS = [
@@ -44,15 +42,6 @@ export const HomePage: React.FC = observer(() => {
         <Tabs variant="boxed" size="md">
           {onRenderTab()}
         </Tabs>
-
-        <div className="mt-4">
-          {alertStore.hasMessage && (
-            <AlertMessage
-              status={alertStore.message!.status}
-              message={alertStore.message!.message}
-            />
-          )}
-        </div>
 
         <div className="p-4">{TAB_CONTENTS[activeTab].component}</div>
       </div>
