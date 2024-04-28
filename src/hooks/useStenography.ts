@@ -1,188 +1,175 @@
 import seedrandom from 'seedrandom';
 import useEncryption from './useEncryption';
 
-// Random sequence generation
+// Random sequence generation with consistent channel selection
 export const generateRandomSequence = (
   width: number,
   height: number,
-  pixelKey: string, // Now a string
-): [number, number][] => {
-  const rng = seedrandom(pixelKey); // Seed with the string key
-  const totalPixels = width * height; // Total number of pixels
+  pixelKey: string, // Random seed key
+): [number, number, string][] => {
+  const rng = seedrandom(pixelKey); // Seed with the key
+  const totalPixels = width * height;
 
-  const sequence: [number, number][] = [];
+  const sequence: [number, number, string][] = [];
   const usedPixels = new Set<number>();
 
-  // Generate unique pixel coordinates
+  const channels = ['red', 'green', 'blue']; // Possible channels
+
+  // Generate unique pixel coordinates with consistent random selection
   while (sequence.length < totalPixels) {
     const randomIndex = Math.floor(rng() * totalPixels); // Random index
+    const randomChannel = channels[Math.floor(rng() * channels.length)]; // Random channel
     if (!usedPixels.has(randomIndex)) {
       usedPixels.add(randomIndex); // Ensure uniqueness
-      const x = randomIndex % width; // Calculate x-coordinate
-      const y = Math.floor(randomIndex / width); // Calculate y-coordinate
-      sequence.push([x, y]); // Add to the sequence
+      const x = randomIndex % width; // x-coordinate
+      const y = Math.floor(randomIndex / width); // y-coordinate
+      sequence.push([x, y, randomChannel]); // Add to the sequence with channel selection
     }
   }
 
-  return sequence;
+  return sequence; // Return generated sequence
 };
-// Custom hook for steganography
+
+// Custom hook for steganography with correct channel reading
 export const useSteganography = () => {
   const { encryptText, decryptText } = useEncryption();
 
-  // Hide text in an image
   const hideTextInImage = async (
     image: File,
     text: string,
     encryptionKey: string, // Base64-encoded key
-    pixelKey: string, // String-based pixel key
+    pixelKey: string, // Key for random sequence generation
   ): Promise<File> => {
-    console.log('Encrypting text...');
-    const { encrypted, iv } = encryptText(text, encryptionKey);
+    const { encrypted, iv } = encryptText(text, encryptionKey); // Encrypt text
 
-    const delimiter = '\u0003'; // The delimiter between IV and encrypted text
-    const fullText = `${iv}${delimiter}${encrypted}`; // Ensure delimiter is embedded
+    const delimiter = '\u0003'; // Delimiter for separation
+    const fullText = `${iv}${delimiter}${encrypted}`; // Combine encrypted text
 
-    console.log('Full text for embedding:', fullText);
-
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement('canvas'); // Create canvas
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-    const img = new Image();
-    img.src = URL.createObjectURL(image);
+    const img = new Image(); // Create image object
+    img.src = URL.createObjectURL(image); // Load image source
 
     await new Promise<void>((resolve, reject) => {
       img.onload = () => {
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        ctx.drawImage(img, 0, 0); // Draw the image on the canvas
-        console.log('Image loaded and drawn on canvas');
-        resolve();
+        canvas.width = img.naturalWidth; // Set canvas width
+        canvas.height = img.naturalHeight; // Set canvas height
+        ctx.drawImage(img, 0, 0); // Draw image onto canvas
+        resolve(); // Signal completion
       };
       img.onerror = (error) => {
-        console.error('Failed to load image:', error);
-        reject(error);
+        reject(error); // Handle error
       };
     });
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); // Get image data
 
-    // Convert text to binary for embedding
     const textBinary = Array.from(new TextEncoder().encode(fullText))
       .map((byte) => byte.toString(2).padStart(8, '0'))
-      .join('');
+      .join(''); // Convert text to binary
 
-    console.log('Generating random sequence...');
     const sequence = generateRandomSequence(
       canvas.width,
       canvas.height,
-      pixelKey,
-    ); // Get the pixel sequence
+      pixelKey, // Use the same key
+    ); // Generate the sequence
 
-    // Embed the text in the image
-    let textIndex = 0;
-    for (const [x, y] of sequence) {
+    let textIndex = 0; // Start of text
+    for (const [x, y, channel] of sequence) {
       if (textIndex >= textBinary.length) {
-        break;
+        break; // No more text to embed
       }
 
-      const pixelIndex = (y * canvas.width + x) * 4; // Index into pixel data
-      imageData.data[pixelIndex] =
-        (imageData.data[pixelIndex] & 0b11111110) |
+      const pixelIndex = (y * canvas.width + x) * 4; // Get pixel index
+      const channelOffset = { red: 0, green: 1, blue: 2 }[channel]!; // Get channel offset
+
+      imageData.data[pixelIndex + channelOffset] =
+        (imageData.data[pixelIndex + channelOffset] & 0b11111110) |
         parseInt(textBinary[textIndex], 2); // Embed the bit
-      textIndex++;
+
+      textIndex++; // Increment index
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    ctx.putImageData(imageData, 0, 0); // Update the image data
 
-    // Convert canvas to file
     const blob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((blob) => {
         if (blob) {
-          resolve(blob);
+          resolve(blob); // Create a new blob
         } else {
-          reject(new Error('Failed to create Blob from canvas.'));
+          reject(new Error('Failed to create Blob.')); // Handle error
         }
       });
     });
 
-    return new File([blob], 'hidden_text_image.png', { type: 'image/png' });
+    return new File([blob], 'hidden_text_image.png', { type: 'image/png' }); // Create the file
   };
 
-  // Extract text from an image
   const extractTextFromImage = async (
     image: File,
-    encryptionKey: string, // Base64-encoded key
-    pixelKey: string, // String-based pixel key
+    encryptionKey: string, // Key for decryption
+    pixelKey: string, // Seed for sequence generation
   ): Promise<string | undefined> => {
-    console.log('Starting to load image...');
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    const canvas = document.createElement('canvas'); // Create a new canvas
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D; // Get the context
 
-    const img = new Image();
-    img.src = URL.createObjectURL(image);
+    const img = new Image(); // Create an image object
+    img.src = URL.createObjectURL(image); // Load the image
 
     await new Promise<void>((resolve, reject) => {
       img.onload = () => {
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        ctx.drawImage(img, 0, 0); // Draw the image on the canvas
-        console.log('Image loaded and drawn on canvas');
-        resolve();
+        canvas.width = img.naturalWidth; // Set canvas width
+        canvas.height = img.naturalHeight; // Set canvas height
+        ctx.drawImage(img, 0, 0); // Draw the image
+        resolve(); // Resolve on completion
       };
       img.onerror = (error) => {
-        console.error('Failed to load image:', error);
-        reject(error);
+        reject(error); // Handle error
       };
     });
 
-    console.log('Getting image data...');
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); // Get image data
 
-    console.log('Generating random sequence...');
     const sequence = generateRandomSequence(
       canvas.width,
       canvas.height,
-      pixelKey,
-    ); // Get the pixel sequence
+      pixelKey, // Use the same seed
+    ); // Get the random sequence
 
-    console.log('Extracting binary data...');
-    let textBinary = '';
-    for (const [x, y] of sequence) {
-      const pixelIndex = (y * canvas.width + x) * 4;
-      textBinary += (imageData.data[pixelIndex] & 0b00000001).toString();
+    let textBinary = ''; // Initialize text storage
+    for (const [x, y, channel] of sequence) {
+      // Include channel info
+      const pixelIndex = (y * canvas.width + x) * 4; // Get pixel index
+      const channelOffset = { red: 0, green: 1, blue: 2 }[channel]!; // Determine channel offset
+
+      textBinary += (
+        imageData.data[pixelIndex + channelOffset] & 0b00000001
+      ).toString(); // Read the bit
     }
 
-    console.log('Converting binary data to text...');
-    const byteSize = 8;
-    const textBytes: number[] = [];
+    const byteSize = 8; // Byte size
+    const textBytes = []; // Initialize bytes array
     for (let i = 0; i < textBinary.length; i += byteSize) {
-      textBytes.push(parseInt(textBinary.slice(i, i + byteSize), 2));
+      textBytes.push(parseInt(textBinary.slice(i, i + byteSize), 2)); // Parse binary to bytes
     }
 
-    const extractedText = new TextDecoder('utf-8').decode(
-      new Uint8Array(textBytes),
-    );
+    const extractedText = new TextDecoder().decode(new Uint8Array(textBytes)); // Decode bytes to text
 
-    const delimiterIndex = extractedText.indexOf('\u0003'); // Check for delimiter
+    const delimiterIndex = extractedText.indexOf('\u0003'); // Locate the delimiter
     if (delimiterIndex === -1) {
-      console.error('No delimiter found in extracted text');
-      return undefined;
+      return undefined; // No delimiter, return undefined
     }
 
-    // Extract IV and encrypted text
-    const [iv, encryptedText] = extractedText.split('\u0003');
+    const [iv, encryptedText] = extractedText.split('\u0003'); // Split IV and text
 
     try {
-      console.log('Attempting decryption...');
-      const decryptedText = decryptText(encryptedText, iv, encryptionKey);
-      console.log('Decryption successful');
-      return decryptedText;
+      return decryptText(encryptedText, iv, encryptionKey); // Attempt decryption
     } catch (error) {
-      console.error('Error during decryption:', error);
+      console.error('Decryption error:', error); // Handle error
       return undefined;
     }
   };
 
-  return { hideTextInImage, extractTextFromImage };
+  return { hideTextInImage, extractTextFromImage }; // Return the methods
 };
