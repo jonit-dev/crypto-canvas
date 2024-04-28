@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Tabs } from 'react-daisyui'; // Importing Tabs component
+import { AlertMessage } from '../../components/AlertMessage';
 import { HideMessagePage } from './HideMessagePage';
 
 const TAB_CONTENTS = [
@@ -41,6 +42,9 @@ export const Home: React.FC = () => {
         <Tabs variant="boxed" size="md">
           {onRenderTab()}
         </Tabs>
+
+        <AlertMessage status="info" message="Hello World" />
+
         <div className="p-4">{TAB_CONTENTS[activeTab].component}</div>
       </div>
     </div>
