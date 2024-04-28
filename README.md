@@ -1,5 +1,11 @@
 # Crypto Canvas
 
+<img src="./src-tauri/icons/128x128@2x.png"
+      alt="Crypto Canvas Logo"
+      style="display: block; margin-left: auto; margin-right: auto; width: 25%;"/>
+
+>
+
 ## Steganography-Based Encryption Application
 
 This application allows you to hide encrypted messages within images using steganography. The hidden messages can be extracted and decrypted only with the correct encryption key and initialization vector (IV). This README describes the technical details, use cases, and the importance of key security.
