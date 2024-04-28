@@ -5,13 +5,7 @@ import {
 } from '@heroicons/react/24/solid';
 import React from 'react';
 import { Alert } from 'react-daisyui';
-
-export type StatusType = 'success' | 'error' | 'info';
-
-interface StatusProps {
-  status: StatusType;
-  message: string;
-}
+import { IAlertMessage } from '../store/AlertStore';
 
 const statusIcons = {
   success: <CheckCircleIcon className="w-6 h-6 stroke-success" />,
@@ -19,7 +13,7 @@ const statusIcons = {
   info: <InformationCircleIcon className="w-6 h-6 stroke-info" />,
 };
 
-export const AlertMessage: React.FC<StatusProps> = ({ status, message }) => {
+export const AlertMessage: React.FC<IAlertMessage> = ({ status, message }) => {
   return (
     <Alert icon={statusIcons[status]} status={status}>
       <span>{message}</span>

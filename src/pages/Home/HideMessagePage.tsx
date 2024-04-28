@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { Alert, Button, FileInput, Textarea } from 'react-daisyui';
+import { Button, FileInput, Textarea } from 'react-daisyui';
 import { useFileHandler } from '../../hooks/useFileHandler';
 import { useSteganography } from '../../hooks/useStenography';
+import { alertStore } from '../../store/AlertStore';
 
 export const HideMessagePage = () => {
   const { hideTextInImage } = useSteganography();
   const {
     readFileAsDataURL,
     createDownloadLink,
-    fileReadingStatus,
-    fileReadingError,
     clearStatusAndError,
     dataURLToBlob,
     blobToFile,
@@ -18,8 +17,6 @@ export const HideMessagePage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string>('');
   const [downloadLink, setDownloadLink] = useState<string | null>(null);
-  const [status, setStatus] = useState('');
-  const [error, setError] = useState('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     clearStatusAndError(); // Clear status and error messages
@@ -35,11 +32,13 @@ export const HideMessagePage = () => {
   const handleSubmit = async () => {
     clearStatusAndError();
     if (!selectedFile || !message) {
-      setStatus('Please select an image and enter a message.');
+      alertStore.setMessage({
+        status: 'error',
+        message: 'Please select an image and enter a message.',
+      });
       return;
     }
 
-    setStatus('Processing...');
     const dataURL = await readFileAsDataURL(selectedFile);
 
     try {
@@ -76,15 +75,24 @@ export const HideMessagePage = () => {
       ); // Create a download link with a specific file name
 
       setDownloadLink(link);
-      setStatus('Message hidden in image.');
+      // setStatus('Message hidden in image.');
+
+      alertStore.setMessage({
+        status: 'success',
+        message: 'Message hidden in image.',
+      });
     } catch (err) {
       console.error(err);
-      setError('Error hiding message in image.');
+
+      alertStore.setMessage({
+        status: 'error',
+        message: 'Failed to hide message in image.',
+      });
     }
   };
 
   return (
-    <div className="mt-12">
+    <>
       <FileInput
         onChange={handleFileChange}
         className="mb-4"
@@ -106,28 +114,15 @@ export const HideMessagePage = () => {
         Hide Message
       </Button>
 
-      {status ||
-        (fileReadingStatus && (
-          <Alert className="mt-4" color="blue">
-            {status}
-          </Alert>
-        ))}
-      {error ||
-        (fileReadingError && (
-          <Alert className="mt-4" color="red">
-            {error}
-          </Alert>
-        ))}
-
       {downloadLink && (
         <a
           href={downloadLink}
           download="hidden_message_image.png" // Sets the download file name
-          className="mt-4 text-center text-blue-600 underline"
+          className="btn btn-primary mt-4"
         >
           Download Hidden Message Image
         </a>
       )}
-    </div>
+    </>
   );
 };
