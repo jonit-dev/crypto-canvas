@@ -54,7 +54,7 @@ export const ModalAlert = observer(() => {
               <Button
                 className="mr-4"
                 onClick={() => {
-                  modal.cancel?.onClick();
+                  modal.cancel?.onClick?.();
                   modalStore.clearModal();
                 }}
               >
