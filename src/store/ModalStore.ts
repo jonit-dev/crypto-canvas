@@ -1,18 +1,19 @@
 import { makeAutoObservable } from 'mobx';
+import React from 'react';
 
 export type ModalType = 'default' | 'success' | 'error' | 'info' | 'warning';
 
 export interface IModal {
   type: ModalType;
   title: string;
-  message: string;
+  message: string | React.ReactNode;
   confirm?: {
     text: string;
     onClick: () => void;
   };
   cancel?: {
     text: string;
-    onClick: () => void;
+    onClick?: () => void;
   };
 }
 

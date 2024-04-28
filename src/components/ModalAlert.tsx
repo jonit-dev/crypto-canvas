@@ -52,17 +52,17 @@ export const ModalAlert = observer(() => {
           <form method="dialog">
             {modal.cancel && (
               <Button
-                onClick={modal.cancel.onClick}
-                color={getButtonColor(modal.type)}
+                className="mr-4"
+                onClick={() => {
+                  modal.cancel?.onClick();
+                  modalStore.clearModal();
+                }}
               >
                 {modal.cancel.text}
               </Button>
             )}
             {modal.confirm && (
-              <Button
-                onClick={modal.confirm.onClick}
-                color={getButtonColor(modal.type)}
-              >
+              <Button onClick={modal.confirm.onClick} color="primary">
                 {modal.confirm.text}
               </Button>
             )}

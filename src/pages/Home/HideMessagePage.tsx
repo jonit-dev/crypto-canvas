@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, FileInput, Textarea } from 'react-daisyui';
 import { useFileHandler } from '../../hooks/useFileHandler';
 import { useSteganography } from '../../hooks/useStenography';
-import { alertStore } from '../../store/AlertStore';
+import { modalStore } from '../../store/ModalStore';
 
 export const HideMessagePage = () => {
   const { hideTextInImage } = useSteganography();
@@ -16,7 +16,6 @@ export const HideMessagePage = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string>('');
-  const [downloadLink, setDownloadLink] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     clearStatusAndError(); // Clear status and error messages
@@ -32,8 +31,9 @@ export const HideMessagePage = () => {
   const handleSubmit = async () => {
     clearStatusAndError();
     if (!selectedFile || !message) {
-      alertStore.setMessage({
-        status: 'error',
+      modalStore.setModal({
+        type: 'error',
+        title: 'Error',
         message: 'Please select an image and enter a message.',
       });
       return;
@@ -74,19 +74,35 @@ export const HideMessagePage = () => {
         'hidden_message_image.png',
       ); // Create a download link with a specific file name
 
-      setDownloadLink(link);
-      // setStatus('Message hidden in image.');
-
-      alertStore.setMessage({
-        status: 'success',
-        message: 'Message hidden in image.',
+      modalStore.setModal({
+        type: 'success',
+        title: 'Success',
+        message:
+          'The provided text was successfully hidden in the image. You can download the image now.',
+        confirm: {
+          text: 'Download',
+          onClick: () => {
+            if (link) {
+              const a = document.createElement('a');
+              a.href = link;
+              a.download = 'hidden-message.png';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            }
+          },
+        },
+        cancel: {
+          text: 'Close',
+        },
       });
     } catch (err) {
       console.error(err);
 
-      alertStore.setMessage({
-        status: 'error',
-        message: 'Failed to hide message in image.',
+      modalStore.setModal({
+        type: 'error',
+        title: 'Error',
+        message: 'An error occurred while hiding the message in the image.',
       });
     }
   };
@@ -113,16 +129,6 @@ export const HideMessagePage = () => {
       >
         Hide Message
       </Button>
-
-      {downloadLink && (
-        <a
-          href={downloadLink}
-          download="hidden_message_image.png" // Sets the download file name
-          className="btn btn-primary mt-4"
-        >
-          Download Hidden Message Image
-        </a>
-      )}
     </>
   );
 };
