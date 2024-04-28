@@ -1,3 +1,5 @@
+import seedrandom from 'seedrandom';
+
 // Function to encrypt text with a key and return the encrypted data and IV
 // const encryptText = async (
 //   text: string,
@@ -78,9 +80,42 @@
 //   return sequence;
 // };
 
+const generateRandomSequence = (
+  width: number,
+  height: number,
+  pixelKey: Uint8Array,
+): [number, number][] => {
+  const seed = Array.from(pixelKey)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+
+  const rng = seedrandom(seed); // Initialize PRNG with seed
+  const totalPixels = width * height; // Total number of pixels
+
+  const sequence: [number, number][] = [];
+  const usedPixels = new Set<number>();
+
+  // Generate unique pixel coordinates
+  while (sequence.length < totalPixels) {
+    const randomIndex = Math.floor(rng() * totalPixels); // Random index
+    if (!usedPixels.has(randomIndex)) {
+      usedPixels.add(randomIndex);
+      const x = randomIndex % width;
+      const y = Math.floor(randomIndex / width);
+      sequence.push([x, y]);
+    }
+  }
+
+  return sequence;
+};
+
 // Custom hook for steganography
 export const useSteganography = () => {
-  const hideTextInImage = async (image: File, text: string): Promise<File> => {
+  const hideTextInImage = async (
+    image: File,
+    text: string,
+    pixelKey: Uint8Array, // Key for generating random sequence
+  ): Promise<File> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
@@ -89,9 +124,9 @@ export const useSteganography = () => {
 
     await new Promise<void>((resolve, reject) => {
       img.onload = () => {
-        canvas.width = img.naturalWidth; // Use naturalWidth
-        canvas.height = img.naturalHeight; // Use naturalHeight
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw the image to fit the canvas
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         resolve();
       };
       img.onerror = (ev) => reject(new Error(`Failed to load image: ${ev}`));
@@ -106,14 +141,24 @@ export const useSteganography = () => {
       .map((byte) => byte.toString(2).padStart(8, '0'))
       .join('');
 
-    // Embed text in the first N pixels' - LSB technique
+    // Embed data using a pseudo-random sequence
+    const sequence = generateRandomSequence(
+      canvas.width,
+      canvas.height,
+      pixelKey,
+    );
     let textIndex = 0;
-    const maxPixels = imageData.data.length / 4; // RGBA has 4 components per pixel
-    for (let i = 0; i < maxPixels && textIndex < textBinary.length; i++) {
-      const pixelIndex = i * 4;
+
+    for (const [x, y] of sequence) {
+      if (textIndex >= textBinary.length) {
+        break;
+      }
+
+      const pixelIndex = (y * canvas.width + x) * 4; // Index into the pixel data
       imageData.data[pixelIndex] =
         (imageData.data[pixelIndex] & 0b11111110) |
         parseInt(textBinary[textIndex], 2);
+
       textIndex++;
     }
 
@@ -134,6 +179,7 @@ export const useSteganography = () => {
 
   const extractTextFromImage = async (
     image: File,
+    pixelKey: Uint8Array, // Key to generate the same pseudo-random sequence
   ): Promise<string | undefined> => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -143,20 +189,26 @@ export const useSteganography = () => {
 
     await new Promise<void>((resolve, reject) => {
       img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
         ctx.drawImage(img, 0, 0);
         resolve();
       };
       img.onerror = (ev) => reject(new Error(`Failed to load image: ${ev}`));
     });
 
-    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Generate the same pseudo-random sequence to extract text
+    const sequence = generateRandomSequence(
+      canvas.width,
+      canvas.height,
+      pixelKey,
+    );
 
     let textBinary = '';
-    const maxPixels = imageData.data.length / 4;
-    for (let i = 0; i < maxPixels; i++) {
-      const pixelIndex = i * 4;
+    for (const [x, y] of sequence) {
+      const pixelIndex = (y * canvas.width + x) * 4;
       textBinary += (imageData.data[pixelIndex] & 0b00000001).toString();
     }
 
@@ -167,13 +219,13 @@ export const useSteganography = () => {
     }
 
     const text = new TextDecoder('utf-8').decode(new Uint8Array(textBytes));
-    const delimiterIndex = text.indexOf('\u0003'); // Find delimiter
+    const delimiterIndex = text.indexOf('\u0003'); // End-of-text marker
 
     if (delimiterIndex === -1) {
-      return undefined; // Return undefined if no text is found
+      return undefined; // No hidden text
     }
 
-    return text.substring(0, delimiterIndex); // Extract the hidden text
+    return text.substring(0, delimiterIndex); // Return the extracted text
   };
 
   return { hideTextInImage, extractTextFromImage };

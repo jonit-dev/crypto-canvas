@@ -97,7 +97,7 @@ export const ExtractMessageTab = () => {
       const extractedMessage = await extractTextFromImage(
         imageFile,
         // encryptionKeysStore.getEncryptionKey()!,
-        // encryptionKeysStore.getPixelKey()!,
+        encryptionKeysStore.getPixelKey()!,
       );
 
       if (!extractedMessage) {

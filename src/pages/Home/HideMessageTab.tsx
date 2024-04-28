@@ -107,7 +107,7 @@ export const HideMessageTab = () => {
         imageFile, // Now passing a File type
         message,
         // encryptionKeysStore.getEncryptionKey()!,
-        // encryptionKeysStore.getPixelKey()!,
+        encryptionKeysStore.getPixelKey()!,
       );
 
       const link = createDownloadLink(
