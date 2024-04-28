@@ -57,7 +57,9 @@ export const HomePage: React.FC = observer(() => {
           {onRenderTab()}
         </Tabs>
 
-        <div className="p-4">{TAB_CONTENTS[activeTab].component}</div>
+        <div className="p-4" style={{ minHeight: '450px', height: '100%' }}>
+          {TAB_CONTENTS[activeTab].component}
+        </div>
       </div>
     </div>
   );
