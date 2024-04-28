@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import seedrandom from 'seedrandom';
 
 // Encrypt text with a key and return the encrypted data and IV
@@ -73,10 +72,11 @@ const decryptText = async (
 };
 
 // Generate a SHA-256 hash
-const generateHash = async (data: string): Promise<Uint8Array> => {
+const generateHash = async (data: Uint8Array): Promise<Uint8Array> => {
   console.log('Generating hash...');
   const textEncoder = new TextEncoder();
-  const encodedData = textEncoder.encode(data); // Convert to Uint8Array
+  const dataString = new TextDecoder().decode(data); // Convert Uint8Array to string
+  const encodedData = textEncoder.encode(dataString); // Convert string to Uint8Array
   const hashBuffer = await crypto.subtle.digest('SHA-256', encodedData); // SHA-256 hash
   console.log('Hash generated.');
   return new Uint8Array(hashBuffer); // Return as Uint8Array
@@ -86,10 +86,10 @@ const generateHash = async (data: string): Promise<Uint8Array> => {
 const generateRandomSequence = async (
   width: number,
   height: number,
-  key: string,
+  pixelKey: Uint8Array,
 ): Promise<[number, number][]> => {
   console.log('Generating random sequence...');
-  const hash = await generateHash(key); // Generate SHA-256 hash
+  const hash = await generateHash(pixelKey); // Generate SHA-256 hash
   const hashHex = Array.from(hash) // Convert Uint8Array to hex string
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
@@ -117,16 +117,16 @@ const generateRandomSequence = async (
 // Custom React hook for steganography using Canvas and Web Crypto API
 
 export const useSteganography = () => {
-  const [encryptionKey, setEncryptionKey] = useState<Uint8Array>(
-    crypto.getRandomValues(new Uint8Array(32)), // 256-bit AES key
-  );
-  const [pixelKey, setPixelKey] = useState<string>(
-    Array.from(crypto.getRandomValues(new Uint8Array(16))) // Convert to hexadecimal
-      .map((byte) => byte.toString(16).padStart(2, '0'))
-      .join(''),
-  );
+  const hideTextInImage = async (
+    image: File,
+    text: string,
+    encryptionKey: Uint8Array,
+    pixelKey: Uint8Array,
+  ): Promise<File> => {
+    console.log(
+      `Hidding Text in image: ${text} - Using encryption key: ${encryptionKey} and pixel key: ${pixelKey}`,
+    );
 
-  const hideTextInImage = async (image: File, text: string): Promise<File> => {
     if (!(image instanceof File)) {
       throw new Error('Invalid input: image should be a File instance.'); // Validate input
     }
@@ -194,9 +194,15 @@ export const useSteganography = () => {
     });
   };
 
-  const extractTextFromImage = async (image: File): Promise<string> => {
+  const extractTextFromImage = async (
+    image: File,
+    encryptionKey: Uint8Array,
+    pixelKey: Uint8Array,
+  ): Promise<string> => {
     try {
-      console.log('Starting text extraction...');
+      console.log(`
+        Extracting text from image: ${image} - Using encryption key: ${encryptionKey} and pixel key: ${pixelKey}
+      `);
 
       const img = new Image();
       img.src = URL.createObjectURL(image);
@@ -260,10 +266,6 @@ export const useSteganography = () => {
   };
 
   return {
-    encryptionKey,
-    pixelKey,
-    setEncryptionKey,
-    setPixelKey,
     hideTextInImage,
     extractTextFromImage,
   };

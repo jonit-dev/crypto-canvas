@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
-import { Button, FileInput, Textarea } from 'react-daisyui';
+import { Button, Textarea } from 'react-daisyui';
+import FileInputWithLabel from '../../components/LabeledFileInput';
 import { useFileHandler } from '../../hooks/useFileHandler';
+import { useGenerateEncryptionKey } from '../../hooks/useGenerateEncryption';
 import { useSteganography } from '../../hooks/useStenography';
+import { encryptionKeysStore } from '../../store/EncryptionKeysStore';
 import { modalStore } from '../../store/ModalStore';
 
-export const HideMessagePage = () => {
+export const HideMessageTab = () => {
   const { hideTextInImage } = useSteganography();
+
+  const { extractKeys } = useGenerateEncryptionKey();
+
   const {
     readFileAsDataURL,
     createDownloadLink,
@@ -17,11 +23,35 @@ export const HideMessagePage = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string>('');
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileLoad = (e: React.ChangeEvent<HTMLInputElement>) => {
     clearStatusAndError(); // Clear status and error messages
     if (e.target.files && e.target.files.length > 0) {
       setSelectedFile(e.target.files[0]);
     }
+  };
+
+  const handleEncryptedKeyFileLoad = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    clearStatusAndError(); // Clear status and error messages
+
+    if (!e.target?.files || e.target.files.length === 0) {
+      modalStore.setModal({
+        type: 'error',
+        title: 'Error',
+        message: 'Please select a valid encryption key file.',
+      });
+      return;
+    }
+
+    // extract keys from the file
+
+    const { encryptionKey, pixelKey } = await extractKeys(e.target?.files[0]);
+
+    encryptionKeysStore.setEncryptionKeys({
+      encryptionKey,
+      pixelKey,
+    });
   };
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -63,10 +93,21 @@ export const HideMessagePage = () => {
       // Convert the Blob to a File
       const imageFile = blobToFile(dataBlob, 'uploaded_image.png');
 
+      if (!encryptionKeysStore.hasEncryptionKeys) {
+        modalStore.setModal({
+          type: 'error',
+          title: 'Error',
+          message: 'Please upload a valid encryption key file first.',
+        });
+        return;
+      }
+
       // Call `hideTextInImage` with the File type
       const hiddenMessageImage = await hideTextInImage(
         imageFile, // Now passing a File type
         message,
+        encryptionKeysStore.getEncryptionKey()!,
+        encryptionKeysStore.getPixelKey()!,
       );
 
       const link = createDownloadLink(
@@ -109,11 +150,19 @@ export const HideMessagePage = () => {
 
   return (
     <>
-      <FileInput
-        onChange={handleFileChange}
+      <FileInputWithLabel
+        labelText="Select your encryption key:"
+        onChange={handleEncryptedKeyFileLoad}
+        className="mb-4"
+        accept=".key"
+        placeholder='Select a ".key" file'
+      />
+      <FileInputWithLabel
+        labelText="Select an image:"
+        placeholder="Select an image file"
+        onChange={handleImageFileLoad}
         className="mb-4"
         accept="image/*"
-        placeholder="Upload an image"
       />
 
       <Textarea

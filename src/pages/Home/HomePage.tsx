@@ -1,19 +1,25 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
 import { Tabs } from 'react-daisyui'; // Importing Tabs component
-import { ExtractMessagePage } from './ExtractMessagePage';
-import { HideMessagePage } from './HideMessagePage';
+import { ExtractMessageTab } from './ExtractMessageTab';
+import { GenerateEncryptionKeyTab } from './GenerateKeyTab';
+import { HideMessageTab } from './HideMessageTab';
 
 const TAB_CONTENTS = [
   {
     id: 0,
     title: 'Hide Message',
-    component: <HideMessagePage />,
+    component: <HideMessageTab />,
   },
   {
     id: 1,
     title: 'Extract Message',
-    component: <ExtractMessagePage />,
+    component: <ExtractMessageTab />,
+  },
+  {
+    id: 2,
+    title: 'Generate Encryption Key',
+    component: <GenerateEncryptionKeyTab />,
   },
 ];
 
