@@ -106,7 +106,7 @@ export const useSteganography = () => {
       .map((byte) => byte.toString(2).padStart(8, '0'))
       .join('');
 
-    // Embed text in the first N pixels' LSB
+    // Embed text in the first N pixels' - LSB technique
     let textIndex = 0;
     const maxPixels = imageData.data.length / 4; // RGBA has 4 components per pixel
     for (let i = 0; i < maxPixels && textIndex < textBinary.length; i++) {
