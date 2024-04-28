@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && yarn install && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "jest",
     "tauri:generate-icons": "node ./environment/generate-tauri-icons.cjs",
-    "tauri:build": "yarn build && yarn tauri:generate-icons && yarn tauri build"
+    "tauri:build": "yarnyarn build && yarn tauri:generate-icons && yarn tauri build"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.3",
