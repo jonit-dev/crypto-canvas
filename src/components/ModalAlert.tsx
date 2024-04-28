@@ -40,7 +40,7 @@ export const ModalAlert = observer(() => {
 
   return (
     modal && (
-      <Dialog open>
+      <Dialog open responsive>
         <Modal.Header
           className={`font-bold text-${getButtonColor(modal.type)}`}
         >
@@ -61,9 +61,13 @@ export const ModalAlert = observer(() => {
                 {modal.cancel.text}
               </Button>
             )}
-            {modal.confirm && (
+            {(modal.confirm && (
               <Button onClick={modal.confirm.onClick} color="primary">
                 {modal.confirm.text}
+              </Button>
+            )) ?? (
+              <Button onClick={() => modalStore.clearModal()} color="primary">
+                Close
               </Button>
             )}
           </form>

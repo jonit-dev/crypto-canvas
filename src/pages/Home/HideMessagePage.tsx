@@ -124,6 +124,7 @@ export const HideMessagePage = () => {
       />
 
       <Button
+        disabled={!selectedFile || !message}
         onClick={handleSubmit}
         className="w-full bg-blue-500 text-white hover:bg-blue-600"
       >

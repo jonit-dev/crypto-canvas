@@ -67,8 +67,6 @@ export const ExtractMessagePage = () => {
         },
       });
     } catch (err) {
-      console.error(err.message);
-
       modalStore.setModal({
         type: 'error',
         title: 'Oops!',
@@ -88,6 +86,7 @@ export const ExtractMessagePage = () => {
       />
 
       <Button
+        disabled={!selectedFile}
         onClick={handleSubmit}
         className="w-full bg-blue-500 text-white hover:bg-blue-600"
       >

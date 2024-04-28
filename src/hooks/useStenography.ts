@@ -47,27 +47,23 @@ const decryptText = async (
   try {
     const algorithm = { name: 'AES-CBC', iv }; // AES with CBC mode
 
+    console.log('Importing key...');
     const cryptoKey = await crypto.subtle.importKey(
       'raw',
       key,
       algorithm,
-      false,
+      false, // Not extractable
       ['decrypt'], // Only for decryption
     );
 
-    console.log('cryptoKey', cryptoKey);
-
-    console.log('Started Decryption...');
-
+    console.log('Decrypting text...');
     const decrypted = new Uint8Array(
       await crypto.subtle.decrypt(algorithm, cryptoKey, encrypted),
     );
 
-    console.log('Decryption completed:', decrypted);
-
     const decryptedText = new TextDecoder('utf-8').decode(decrypted);
 
-    console.log('Decrypted text:', decryptedText);
+    console.log('Decryption completed. Decrypted text:', decryptedText);
 
     return decryptedText;
   } catch (err) {
@@ -82,7 +78,7 @@ const generateHash = async (data: string): Promise<Uint8Array> => {
   const textEncoder = new TextEncoder();
   const encodedData = textEncoder.encode(data); // Convert to Uint8Array
   const hashBuffer = await crypto.subtle.digest('SHA-256', encodedData); // SHA-256 hash
-  console.log('Hash generated.', hashBuffer);
+  console.log('Hash generated.');
   return new Uint8Array(hashBuffer); // Return as Uint8Array
 };
 
@@ -219,6 +215,8 @@ export const useSteganography = () => {
       console.log('Image loaded and drawn on canvas.');
 
       const imageData = ctx.getImageData(0, 0, img.width, img.height);
+
+      console.log('Extracting text...');
 
       const sequence = await generateRandomSequence(
         img.width,
