@@ -6,9 +6,12 @@ const encryptText = async (
   text: string,
   key: Uint8Array,
 ): Promise<{ encrypted: Uint8Array; iv: Uint8Array }> => {
+  console.log('Starting encryption...');
   const iv = crypto.getRandomValues(new Uint8Array(16)); // Secure Initialization Vector
+  console.log('Initialization Vector:', iv);
   const algorithm = { name: 'AES-CBC', iv }; // AES with CBC mode
 
+  console.log('Importing key...');
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
     key,
@@ -17,6 +20,7 @@ const encryptText = async (
     ['encrypt'], // Only for encryption
   );
 
+  console.log('Encrypting text...');
   const encrypted = new Uint8Array(
     await crypto.subtle.encrypt(
       algorithm,
@@ -25,6 +29,7 @@ const encryptText = async (
     ),
   );
 
+  console.log('Encryption completed.');
   return { encrypted, iv };
 };
 
@@ -34,28 +39,50 @@ const decryptText = async (
   iv: Uint8Array,
   key: Uint8Array,
 ): Promise<string> => {
-  const algorithm = { name: 'AES-CBC', iv }; // AES with CBC mode
+  console.log('Starting decryption...');
+  console.log('Encrypted text:', encrypted);
+  console.log('IV:', iv);
+  console.log('Key:', key);
 
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    key,
-    algorithm,
-    false,
-    ['decrypt'], // Only for decryption
-  );
+  try {
+    const algorithm = { name: 'AES-CBC', iv }; // AES with CBC mode
 
-  const decrypted = new Uint8Array(
-    await crypto.subtle.decrypt(algorithm, cryptoKey, encrypted),
-  );
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      key,
+      algorithm,
+      false,
+      ['decrypt'], // Only for decryption
+    );
 
-  return new TextDecoder('utf-8').decode(decrypted);
+    console.log('cryptoKey', cryptoKey);
+
+    console.log('Started Decryption...');
+
+    const decrypted = new Uint8Array(
+      await crypto.subtle.decrypt(algorithm, cryptoKey, encrypted),
+    );
+
+    console.log('Decryption completed:', decrypted);
+
+    const decryptedText = new TextDecoder('utf-8').decode(decrypted);
+
+    console.log('Decrypted text:', decryptedText);
+
+    return decryptedText;
+  } catch (err) {
+    console.error('An error occurred during decryption:', err);
+    throw err;
+  }
 };
 
 // Generate a SHA-256 hash
 const generateHash = async (data: string): Promise<Uint8Array> => {
+  console.log('Generating hash...');
   const textEncoder = new TextEncoder();
   const encodedData = textEncoder.encode(data); // Convert to Uint8Array
   const hashBuffer = await crypto.subtle.digest('SHA-256', encodedData); // SHA-256 hash
+  console.log('Hash generated.', hashBuffer);
   return new Uint8Array(hashBuffer); // Return as Uint8Array
 };
 
@@ -65,6 +92,7 @@ const generateRandomSequence = async (
   height: number,
   key: string,
 ): Promise<[number, number][]> => {
+  console.log('Generating random sequence...');
   const hash = await generateHash(key); // Generate SHA-256 hash
   const hashHex = Array.from(hash) // Convert Uint8Array to hex string
     .map((byte) => byte.toString(16).padStart(2, '0'))
@@ -86,6 +114,7 @@ const generateRandomSequence = async (
     }
   }
 
+  console.log('Random sequence generated.');
   return sequence;
 };
 
@@ -170,47 +199,66 @@ export const useSteganography = () => {
   };
 
   const extractTextFromImage = async (image: File): Promise<string> => {
-    const img = new Image();
-    img.src = URL.createObjectURL(image);
+    try {
+      console.log('Starting text extraction...');
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+      const img = new Image();
+      img.src = URL.createObjectURL(image);
 
-    await new Promise<void>((resolve) => {
-      img.onload = () => {
-        canvas.width = img.width;
-        ctx.drawImage(img, 0, 0);
-        resolve();
-      };
-    });
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+      await new Promise<void>((resolve) => {
+        img.onload = () => {
+          canvas.width = img.width;
+          ctx.drawImage(img, 0, 0);
+          resolve();
+        };
+      });
 
-    const sequence = await generateRandomSequence(
-      img.width,
-      img.height,
-      pixelKey,
-    ); // Awaiting the promise
+      console.log('Image loaded and drawn on canvas.');
 
-    let textBinary = '';
-    for (const [x, y] of sequence) {
-      const pixelIndex = (y * img.width + x) * 4;
+      const imageData = ctx.getImageData(0, 0, img.width, img.height);
 
-      textBinary += (imageData.data[pixelIndex] & 0b00000001).toString(); // Extract LSB
+      const sequence = await generateRandomSequence(
+        img.width,
+        img.height,
+        pixelKey,
+      );
+
+      console.log('Random sequence generated.');
+
+      let textBinary = '';
+      for (const [x, y] of sequence) {
+        const pixelIndex = (y * img.width + x) * 4;
+
+        textBinary += (imageData.data[pixelIndex] & 0b00000001).toString(); // Extract LSB
+      }
+
+      console.log('Text binary extracted.');
+
+      const textBytes: number[] = [];
+      const byteSize = 8;
+      for (let i = 0; i < textBinary.length; i += byteSize) {
+        textBytes.push(parseInt(textBinary.slice(i, i + byteSize), 2));
+      }
+
+      console.log('Text bytes extracted.');
+
+      const iv = new Uint8Array(textBytes.slice(0, 16)); // Extract IV
+      const encryptedText = new Uint8Array(textBytes.slice(16)); // Extract encrypted text
+
+      console.log('IV and encrypted text extracted.');
+
+      const decryptedText = await decryptText(encryptedText, iv, encryptionKey); // Decrypt using Web Crypto API
+
+      console.log('Text decrypted.');
+
+      return decryptedText;
+    } catch (err) {
+      console.error('An error occurred:', err);
+      throw err;
     }
-
-    const textBytes: number[] = [];
-    const byteSize = 8;
-    for (let i = 0; i < textBinary.length; i += byteSize) {
-      textBytes.push(parseInt(textBinary.slice(i, i + byteSize)));
-    }
-
-    const iv = new Uint8Array(textBytes.slice(0, 16)); // Extract IV
-    const encryptedText = new Uint8Array(textBytes.slice(16)); // Extract encrypted text
-
-    const decryptedText = await decryptText(encryptedText, iv, encryptionKey); // Decrypt using Web Crypto API
-
-    return decryptedText;
   };
 
   return {

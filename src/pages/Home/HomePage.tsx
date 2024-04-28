@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
 import { Tabs } from 'react-daisyui'; // Importing Tabs component
+import { ExtractMessagePage } from './ExtractMessagePage';
 import { HideMessagePage } from './HideMessagePage';
 
 const TAB_CONTENTS = [
@@ -12,7 +13,7 @@ const TAB_CONTENTS = [
   {
     id: 1,
     title: 'Extract Message',
-    component: <div>Content for Extract Message</div>,
+    component: <ExtractMessagePage />,
   },
 ];
 
