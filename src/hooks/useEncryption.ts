@@ -1,50 +1,52 @@
+import CryptoJS from 'crypto-js';
+
 const useEncryption = () => {
-  const encryptText = async (
+  const encryptText = (
     text: string,
-    encryptedKey: Uint8Array,
-  ): Promise<{ encrypted: Uint8Array; iv: Uint8Array }> => {
-    const iv = window.crypto.getRandomValues(new Uint8Array(16)); // Initialization Vector
-    const algorithm = { name: 'AES-CBC', iv };
+    encryptionKey: string, // Base64-encoded key
+  ): { encrypted: string; iv: string } => {
+    const iv = CryptoJS.lib.WordArray.random(16); // Generate a 16-byte IV
+    const key = CryptoJS.enc.Base64.parse(encryptionKey); // Parse the base64 key
 
-    const cryptoKey = await window.crypto.subtle.importKey(
-      'raw',
-      encryptedKey,
-      algorithm,
-      false,
-      ['encrypt'],
-    );
+    const encrypted = CryptoJS.AES.encrypt(text, key, {
+      iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7,
+    });
 
-    const encrypted = new Uint8Array(
-      await window.crypto.subtle.encrypt(
-        algorithm,
-        cryptoKey,
-        new TextEncoder().encode(text),
-      ),
-    );
+    console.log(`Encrypting text with:
+      - IV: ${iv.toString(CryptoJS.enc.Base64)}
+      - Key: ${key.toString(CryptoJS.enc.Base64)}
+      - Encrypted: ${encrypted.toString()}
+        `);
 
-    return { encrypted, iv };
+    return {
+      encrypted: encrypted.toString(),
+      iv: iv.toString(CryptoJS.enc.Base64),
+    };
   };
 
-  const decryptText = async (
-    encryptedText: Uint8Array,
-    iv: Uint8Array,
-    encryptedKey: Uint8Array,
-  ): Promise<string> => {
-    const algorithm = { name: 'AES-CBC', iv };
+  const decryptText = (
+    encryptedText: string,
+    iv: string,
+    encryptionKey: string,
+  ): string => {
+    const key = CryptoJS.enc.Base64.parse(encryptionKey); // Parse the base64 key
+    const ivArray = CryptoJS.enc.Base64.parse(iv); // Parse the base64 IV
 
-    const cryptoKey = await window.crypto.subtle.importKey(
-      'raw',
-      encryptedKey,
-      algorithm,
-      false,
-      ['decrypt'],
-    );
+    const decrypted = CryptoJS.AES.decrypt(encryptedText, key, {
+      iv: ivArray,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7,
+    });
 
-    const decrypted = new Uint8Array(
-      await window.crypto.subtle.decrypt(algorithm, cryptoKey, encryptedText),
-    );
+    console.log(`Decrypting text with:
+      - IV: ${ivArray.toString(CryptoJS.enc.Base64)}
+      - Key: ${key.toString(CryptoJS.enc.Base64)}
+      - Decrypted: ${decrypted.toString(CryptoJS.enc.Utf8)}
+      `);
 
-    return new TextDecoder('utf-8').decode(decrypted);
+    return decrypted.toString(CryptoJS.enc.Utf8); // Convert to UTF-8 text
   };
 
   return { encryptText, decryptText };

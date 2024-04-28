@@ -36,7 +36,7 @@ export const useGenerateEncryptionKey = () => {
   // Function to extract keys from a given file
   const extractKeys = (
     file: File,
-  ): Promise<{ encryptionKey: Uint8Array; pixelKey: Uint8Array }> => {
+  ): Promise<{ encryptionKey: string; pixelKey: string }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -46,18 +46,30 @@ export const useGenerateEncryptionKey = () => {
           if (lines.length < 2) {
             reject(new Error('File does not contain both keys.'));
           } else {
-            const encryptionKey = new Uint8Array(
-              lines[0].match(/.{1,2}/g)?.map((hex) => parseInt(hex, 16)) || [],
-            );
-            const pixelKey = new Uint8Array(
-              lines[1].match(/.{1,2}/g)?.map((hex) => parseInt(hex, 16)) || [],
-            );
+            // Convert hexadecimal to base64
+            const hexToBase64 = (hex: string): string => {
+              return btoa(
+                String.fromCharCode(
+                  ...(hex.match(/.{1,2}/g)?.map((h) => parseInt(h, 16)) || []),
+                ),
+              );
+            };
+
+            const encryptionKey = hexToBase64(lines[0]); // Base64 for crypto-js
+            const pixelKey = hexToBase64(lines[1]); // Base64 for easier handling
+
             resolve({ encryptionKey, pixelKey });
           }
         } else {
           reject(new Error('Failed to read file content.'));
         }
       };
+
+      reader.onerror = (error) => {
+        console.error('File reading error:', error);
+        reject(new Error('Failed to read file content.'));
+      };
+
       reader.readAsText(file);
     });
   };

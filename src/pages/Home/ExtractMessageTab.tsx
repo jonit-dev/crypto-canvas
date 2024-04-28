@@ -104,6 +104,8 @@ export const ExtractMessageTab = () => {
         message: `The extracted message is: ${extractedMessage}`,
       });
     } catch (err) {
+      console.error('Failed to extract message: ', err);
+
       modalStore.setModal({
         type: 'error',
         title: 'Oops!',

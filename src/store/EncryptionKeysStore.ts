@@ -3,8 +3,8 @@ import { makeAutoObservable } from 'mobx';
 export type StatusType = 'success' | 'error' | 'info';
 
 export interface IEncryptionKeys {
-  encryptionKey: Uint8Array;
-  pixelKey: Uint8Array;
+  encryptionKey: string; //base64-encoded key
+  pixelKey: string; // base64-encoded key
 }
 
 class EncryptionKeysStore {
