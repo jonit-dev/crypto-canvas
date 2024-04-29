@@ -1,14 +1,37 @@
-import { Button, Card } from 'react-daisyui';
+import { useEffect, useState } from 'react';
+import { Button, Card, Input } from 'react-daisyui';
 import { AlertMessage } from '../../components/AlertMessage';
 import { useGenerateEncryptionKey } from '../../hooks/useGenerateEncryption';
+import { loadingStore } from '../../store/LoadingStore';
 
 export const GenerateEncryptionKeyTab = () => {
-  const { generateKey, downloadKey } = useGenerateEncryptionKey();
+  const { generateKey, encryptionKey, pixelKey, downloadKey } =
+    useGenerateEncryptionKey();
+
+  const [encryptionKeyPassword, setEncryptionKeyPassword] = useState('');
 
   const handleGenerateAndDownloadKey = async () => {
-    generateKey();
-    downloadKey();
+    try {
+      loadingStore.setLoading(true);
+
+      // wait 1 sec
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      generateKey(encryptionKeyPassword);
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+  useEffect(() => {
+    if (!encryptionKey || !pixelKey) return;
+
+    console.log('Downloading key...');
+
+    downloadKey(encryptionKeyPassword);
+
+    loadingStore.setLoading(false);
+  }, [encryptionKey, pixelKey]);
 
   return (
     <Card className="p-5">
@@ -19,11 +42,22 @@ export const GenerateEncryptionKeyTab = () => {
 
       <p className="mt-8 mb-8">
         This tool generates a 256-bit encryption key that can be used to encrypt
-        and decrypt messages. Click the button below to generate and download
-        the key.
+        and decrypt messages.
       </p>
 
-      <Button onClick={handleGenerateAndDownloadKey} variant="outline">
+      <Input
+        value={encryptionKeyPassword}
+        onChange={(e) => setEncryptionKeyPassword(e.target.value)}
+        placeholder="Enter password to encrypt the key"
+        type="password"
+        className="mb-4 w-full"
+      />
+
+      <Button
+        onClick={handleGenerateAndDownloadKey}
+        variant="outline"
+        disabled={!encryptionKeyPassword}
+      >
         Generate and Download Key
       </Button>
     </Card>

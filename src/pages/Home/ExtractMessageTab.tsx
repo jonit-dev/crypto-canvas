@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from 'react-daisyui';
+import { Button, Divider, Input } from 'react-daisyui';
 import FileInputWithLabel from '../../components/LabeledFileInput';
 import { useFileHandler } from '../../hooks/useFileHandler';
 import { useGenerateEncryptionKey } from '../../hooks/useGenerateEncryption';
@@ -14,10 +14,13 @@ export const ExtractMessageTab = () => {
     useFileHandler();
 
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [encryptionKeyFile, setEncryptionKeyFile] = useState<File | null>(null);
 
   const { extractKeys } = useGenerateEncryptionKey();
 
-  const handleEncryptedKeyFileLoad = async (
+  const [privateKeyPassword, setPrivateKeyPassword] = useState('');
+
+  const handleEncryptedKeyFileLoad = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     clearStatusAndError(); // Clear status and error messages
@@ -31,14 +34,7 @@ export const ExtractMessageTab = () => {
       return;
     }
 
-    // extract keys from the file
-
-    const { encryptionKey, pixelKey } = await extractKeys(e.target?.files[0]);
-
-    encryptionKeysStore.setEncryptionKeys({
-      encryptionKey,
-      pixelKey,
-    });
+    setEncryptionKeyFile(e.target.files[0]);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,16 +46,15 @@ export const ExtractMessageTab = () => {
 
   const handleSubmit = async () => {
     clearStatusAndError();
-    if (!selectedImageFile) {
+    if (!selectedImageFile || !encryptionKeyFile || !privateKeyPassword) {
       modalStore.setModal({
         type: 'error',
         title: 'Error',
-        message: 'Please select an image.',
+        message:
+          'Please select an image, encryption key file, and provide the password.',
       });
       return;
     }
-
-    const dataURL = await readFileAsDataURL(selectedImageFile);
 
     try {
       loadingStore.setLoading(true);
@@ -67,6 +62,17 @@ export const ExtractMessageTab = () => {
       // Wait for the loading screen to show
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      const { encryptionKey, pixelKey } = await extractKeys(
+        encryptionKeyFile,
+        privateKeyPassword,
+      );
+
+      encryptionKeysStore.setEncryptionKeys({
+        encryptionKey,
+        pixelKey,
+      });
+
+      const dataURL = await readFileAsDataURL(selectedImageFile);
       const img = new Image();
       img.src = dataURL;
       await new Promise<void>((resolve) => {
@@ -75,29 +81,15 @@ export const ExtractMessageTab = () => {
         };
       });
 
-      // Draw the image on a canvas
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      // Create a Blob from the data URL
       const dataBlob = dataURLToBlob(dataURL);
-
-      // Convert the Blob to a File
       const imageFile = blobToFile(dataBlob, 'uploaded_image.png');
 
-      if (!encryptionKeysStore.hasEncryptionKeys) {
-        modalStore.setModal({
-          type: 'error',
-          title: 'Error',
-          message: 'Please upload a valid encryption key file first.',
-        });
-        return;
-      }
-
-      // Call `extractTextFromImage` with the File type
       const extractedMessage = await extractTextFromImage(
         imageFile,
         encryptionKeysStore.getEncryptionKey()!,
@@ -125,8 +117,17 @@ export const ExtractMessageTab = () => {
       modalStore.setModal({
         type: 'error',
         title: 'Oops!',
-        message:
-          'An error occurred while extracting the message from the image.',
+        message: (
+          <>
+            <p>Sorry, we couldn't extract the message from the image.</p>
+            <p>This could be due to:</p>
+            <ul className="list-disc list-inside mt-4">
+              <li>The encryption key file or password being incorrect,</li>
+              <li>The image not containing a hidden message, or</li>
+              <li>The image being modified after the message was hidden.</li>
+            </ul>
+          </>
+        ),
       });
     } finally {
       loadingStore.setLoading(false);
@@ -138,9 +139,20 @@ export const ExtractMessageTab = () => {
       <FileInputWithLabel
         labelText="Select your encryption key:"
         onChange={handleEncryptedKeyFileLoad}
-        className="mb-4"
+        className="mb-4 mt-4"
         accept=".key"
+        placeholder='Select a ".key" file'
       />
+
+      <Input
+        type="password"
+        placeholder="Enter your private key password"
+        value={privateKeyPassword}
+        onChange={(e) => setPrivateKeyPassword(e.target.value)}
+        className="mb-4 w-full"
+      />
+
+      <Divider />
 
       <FileInputWithLabel
         labelText="Select an image:"
@@ -150,7 +162,9 @@ export const ExtractMessageTab = () => {
       />
 
       <Button
-        disabled={!selectedImageFile}
+        disabled={
+          !selectedImageFile || !encryptionKeyFile || !privateKeyPassword
+        }
         onClick={handleSubmit}
         className="w-full"
         variant="outline"

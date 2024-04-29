@@ -1,64 +1,81 @@
+import * as CryptoJS from 'crypto-js';
 import { useState } from 'react';
 
-export const useGenerateEncryptionKey = () => {
-  // Internal state to store encryption and pixel keys
-  const [encryptionKey, setEncryptionKey] = useState<Uint8Array | null>(null);
-  const [pixelKey, setPixelKey] = useState<Uint8Array | null>(null);
+import PBKDF2 from 'crypto-js/pbkdf2';
 
-  // Function to generate new keys
-  const generateKey = () => {
-    const newEncryptionKey = crypto.getRandomValues(new Uint8Array(32)); // 256-bit key
-    const newPixelKey = crypto.getRandomValues(new Uint8Array(16)); // 128-bit key for pixel sequence
-    setEncryptionKey(newEncryptionKey);
-    setPixelKey(newPixelKey);
+const ENCRYPTION_KEY_PIXEL_KEY_DELIMITER = '|';
+
+export const useGenerateEncryptionKey = () => {
+  const [encryptionKey, setEncryptionKey] = useState<string | null>(null);
+  const [pixelKey, setPixelKey] = useState<string | null>(null);
+
+  const generateKey = (password: string) => {
+    const saltBytes = new Uint8Array(16);
+    window.crypto.getRandomValues(saltBytes);
+    const salt = CryptoJS.lib.WordArray.create(saltBytes);
+
+    const encryptionKeyBuffer = PBKDF2(password, salt, {
+      keySize: 64 / 4,
+      iterations: 10000,
+    });
+    const pixelKeyBuffer = PBKDF2(password, salt, {
+      keySize: 64 / 4,
+      iterations: 10000,
+    });
+
+    const generatedEncryptionKey =
+      CryptoJS.enc.Base64.stringify(encryptionKeyBuffer);
+    const generatedPixelKey = CryptoJS.enc.Base64.stringify(pixelKeyBuffer);
+
+    setEncryptionKey(generatedEncryptionKey);
+    setPixelKey(generatedPixelKey);
   };
 
-  // Function to download generated keys
-  const downloadKey = () => {
-    if (!encryptionKey || !pixelKey) return;
+  const downloadKey = (password: string) => {
+    if (!encryptionKey || !pixelKey) {
+      console.error('Keys are not generated.');
+      return;
+    }
 
-    const keyData = `${Array.from(encryptionKey)
-      .map((byte) => byte.toString(16).padStart(2, '0'))
-      .join('')}\n${Array.from(pixelKey)
-      .map((byte) => byte.toString(16).padStart(2, '0'))
-      .join('')}`;
+    const keyData = `${encryptionKey}${ENCRYPTION_KEY_PIXEL_KEY_DELIMITER}${pixelKey}`;
+    const encryptedKeyData = CryptoJS.AES.encrypt(keyData, password).toString();
 
-    const keyBlob = new Blob([keyData], { type: 'text/plain' });
+    const keyBlob = new Blob([encryptedKeyData], { type: 'text/plain' });
     const url = URL.createObjectURL(keyBlob);
     const downloadLink = document.createElement('a');
     downloadLink.href = url;
     downloadLink.download = 'encryption-key.key';
     document.body.appendChild(downloadLink);
-    downloadLink.click(); // Trigger download
+    downloadLink.click();
     document.body.removeChild(downloadLink);
   };
 
-  // Function to extract keys from a given file
   const extractKeys = (
     file: File,
+    password: string,
   ): Promise<{ encryptionKey: string; pixelKey: string }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const result = event.target?.result?.toString();
         if (result) {
-          const lines = result.split('\n');
-          if (lines.length < 2) {
-            reject(new Error('File does not contain both keys.'));
-          } else {
-            // Convert hexadecimal to base64
-            const hexToBase64 = (hex: string): string => {
-              return btoa(
-                String.fromCharCode(
-                  ...(hex.match(/.{1,2}/g)?.map((h) => parseInt(h, 16)) || []),
-                ),
-              );
-            };
-
-            const encryptionKey = hexToBase64(lines[0]); // Base64 for crypto-js
-            const pixelKey = hexToBase64(lines[1]); // Base64 for easier handling
-
-            resolve({ encryptionKey, pixelKey });
+          try {
+            const encryptedKeyData = result;
+            const keyData = CryptoJS.AES.decrypt(
+              encryptedKeyData,
+              password,
+            ).toString(CryptoJS.enc.Utf8);
+            const [encryptionKey, pixelKey] = keyData.split(
+              ENCRYPTION_KEY_PIXEL_KEY_DELIMITER,
+            );
+            if (!encryptionKey || !pixelKey) {
+              reject(new Error('File does not contain both keys.'));
+            } else {
+              resolve({ encryptionKey, pixelKey });
+            }
+          } catch (error) {
+            console.error('Error decrypting key data:', error);
+            reject(new Error('Failed to decrypt key data.'));
           }
         } else {
           reject(new Error('Failed to read file content.'));
@@ -74,5 +91,5 @@ export const useGenerateEncryptionKey = () => {
     });
   };
 
-  return { generateKey, downloadKey, extractKeys };
+  return { generateKey, downloadKey, extractKeys, encryptionKey, pixelKey };
 };
