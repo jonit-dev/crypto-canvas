@@ -20,20 +20,40 @@ export const generateRandomSequence = (
     [pixelIndices[i], pixelIndices[j]] = [pixelIndices[j], pixelIndices[i]];
   }
 
+  const errors = new Array(totalPixels).fill(0); // Error array to store diffusion effects
+
   return pixelIndices.map((index) => {
     const x = index % width;
     const y = Math.floor(index / width);
     const randomChannel = channels[Math.floor(rng() * channels.length)];
 
-    // Determine bit position based on adaptive strategy or use LSB
-    const intensity =
-      useMultipleBits && !useErrorDiffusion ? Math.floor(rng() * 8) : 0;
-    const bitPosition = useErrorDiffusion && intensity > 4 ? 0 : intensity;
+    let bitPosition = 0;
+    if (useMultipleBits) {
+      bitPosition = Math.floor(rng() * 8);
+      if (useErrorDiffusion) {
+        // Apply error diffusion: adjust bit position based on accumulated error
+        const error = errors[index];
+        bitPosition = Math.max(0, Math.min(7, bitPosition + error));
+        errors[index] = 0; // Reset error after applying
+      }
+    }
+
+    // If using error diffusion, diffuse the "modification" to neighboring pixels
+    if (useErrorDiffusion) {
+      const neighbors = [
+        index - 1,
+        index + 1,
+        index - width,
+        index + width,
+      ].filter((i) => i >= 0 && i < totalPixels);
+      neighbors.forEach((n) => {
+        errors[n] += rng() * 0.5 - 0.25; // Randomly adjust neighbors' error within a small range
+      });
+    }
 
     return [x, y, randomChannel, bitPosition];
   });
 };
-
 export const useSteganography = () => {
   const { encryptText, decryptText } = useEncryption();
 
