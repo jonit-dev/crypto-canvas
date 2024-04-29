@@ -92,7 +92,7 @@ export const useSteganography = () => {
       canvas.height,
       pixelKey,
       false, // Set to true to use multiple bits
-      false, // Set to true to use error diffusion
+      true, // Set to true to use error diffusion
     );
 
     let textIndex = 0;
@@ -149,7 +149,7 @@ export const useSteganography = () => {
       canvas.height,
       pixelKey,
       false, // Set to true to use multiple bits
-      false, // Set to true to use error diffusion
+      true, // Set to true to use error diffusion
     );
 
     let textBinary = '';
