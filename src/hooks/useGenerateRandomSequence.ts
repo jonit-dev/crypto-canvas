@@ -18,7 +18,6 @@ export const useGenerateRandomSequence = () => {
   const hashPixelKey = async (pixelKey: string): Promise<Uint8Array> => {
     const encoder = new TextEncoder();
     const data = encoder.encode(pixelKey);
-    // Example of a potential future-proof cryptographic hash function (placeholder)
     const hashBuffer = await crypto.subtle.digest('SHA-384', data); // Switch to SHA-384 for enhanced security
     return new Uint8Array(hashBuffer);
   };
