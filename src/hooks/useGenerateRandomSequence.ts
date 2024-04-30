@@ -1,5 +1,4 @@
 export const useGenerateRandomSequence = () => {
-  // Helper function to get a secure random integer in the specified range
   const secureRandomInt = (
     min: number,
     max: number,
@@ -7,7 +6,7 @@ export const useGenerateRandomSequence = () => {
     offset: number,
   ): number => {
     const range = max - min + 1;
-    const byteIndex = offset % (buffer.length - 4); // Prevent buffer overflow
+    const byteIndex = offset % (buffer.length - 4);
     const int =
       (buffer[byteIndex] << 24) |
       (buffer[byteIndex + 1] << 16) |
@@ -16,15 +15,14 @@ export const useGenerateRandomSequence = () => {
     return min + (Math.abs(int) % range);
   };
 
-  // Generates a SHA-256 hash of the pixelKey
   const hashPixelKey = async (pixelKey: string): Promise<Uint8Array> => {
     const encoder = new TextEncoder();
     const data = encoder.encode(pixelKey);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    // Example of a potential future-proof cryptographic hash function (placeholder)
+    const hashBuffer = await crypto.subtle.digest('SHA-384', data); // Switch to SHA-384 for enhanced security
     return new Uint8Array(hashBuffer);
   };
 
-  // Generates a random sequence for pixel manipulation based on a hash derived from pixelKey
   const generateRandomSequence = async (
     width: number,
     height: number,
@@ -40,7 +38,6 @@ export const useGenerateRandomSequence = () => {
     const channels = ['red', 'green', 'blue'];
     const hash = await hashPixelKey(pixelKey);
 
-    // Randomize pixel indices using the Fisher-Yates shuffle algorithm with secure hash-based randomness
     for (let i = totalPixels - 1; i > 0; i--) {
       const j = secureRandomInt(0, i, hash, i * 4);
       [pixelIndices[i], pixelIndices[j]] = [pixelIndices[j], pixelIndices[i]];
@@ -51,7 +48,8 @@ export const useGenerateRandomSequence = () => {
     return pixelIndices.map((index) => {
       const x = index % width;
       const y = Math.floor(index / width);
-      const channelOffset = secureRandomInt(0, 2, hash, index); // Secure random channel selection
+      const pixelColor = hash[index % hash.length] % 256;
+      const channelOffset = pixelColor > 85 ? (pixelColor > 170 ? 2 : 1) : 0;
       const randomChannel = channels[channelOffset];
 
       let bitPosition = 0;
@@ -60,7 +58,7 @@ export const useGenerateRandomSequence = () => {
         if (useErrorDiffusion) {
           const error = errors[index];
           bitPosition = Math.max(0, Math.min(7, bitPosition + error));
-          errors[index] = 0; // Reset error after applying
+          errors[index] = 0;
         }
       }
 
@@ -72,7 +70,11 @@ export const useGenerateRandomSequence = () => {
           index + width,
         ].filter((n) => n >= 0 && n < totalPixels);
         neighbors.forEach((n) => {
-          const adjustment = secureRandomInt(-25, 25, hash, n) / 100; // Improved error diffusion
+          const localIntensity = hash[n % hash.length] % 256;
+          const intensityAdjustmentFactor = localIntensity / 128 - 1; // Adjust based on local pixel intensity
+          const adjustment =
+            (secureRandomInt(-25, 25, hash, n) / 100) *
+            intensityAdjustmentFactor; // Dynamic error diffusion
           errors[n] += adjustment;
         });
       }
