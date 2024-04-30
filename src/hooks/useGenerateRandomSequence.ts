@@ -1,5 +1,3 @@
-// create hook useGenerateRandomSequence
-
 export const useGenerateRandomSequence = () => {
   // Helper function to get a secure random integer in the specified range
   const secureRandomInt = (
@@ -9,7 +7,7 @@ export const useGenerateRandomSequence = () => {
     offset: number,
   ): number => {
     const range = max - min + 1;
-    const byteIndex = offset % (buffer.length - 4); // Ensure we don't overflow the buffer
+    const byteIndex = offset % (buffer.length - 4); // Prevent buffer overflow
     const int =
       (buffer[byteIndex] << 24) |
       (buffer[byteIndex + 1] << 16) |
@@ -44,30 +42,28 @@ export const useGenerateRandomSequence = () => {
 
     // Randomize pixel indices using the Fisher-Yates shuffle algorithm with secure hash-based randomness
     for (let i = totalPixels - 1; i > 0; i--) {
-      const j = secureRandomInt(0, i, hash, i * 4); // i * 4 to vary the offset in the hash buffer
+      const j = secureRandomInt(0, i, hash, i * 4);
       [pixelIndices[i], pixelIndices[j]] = [pixelIndices[j], pixelIndices[i]];
     }
 
-    const errors = new Array(totalPixels).fill(0); // Error array to store diffusion effects
+    const errors = new Array(totalPixels).fill(0);
 
     return pixelIndices.map((index) => {
       const x = index % width;
       const y = Math.floor(index / width);
-      const channelOffset = index % 3; // Corrected from i to index
+      const channelOffset = secureRandomInt(0, 2, hash, index); // Secure random channel selection
       const randomChannel = channels[channelOffset];
 
       let bitPosition = 0;
       if (useMultipleBits) {
-        bitPosition = secureRandomInt(0, 7, hash, index % hash.length); // Use index to vary the offset
+        bitPosition = secureRandomInt(0, 7, hash, index);
         if (useErrorDiffusion) {
-          // Apply error diffusion: adjust bit position based on accumulated error
           const error = errors[index];
           bitPosition = Math.max(0, Math.min(7, bitPosition + error));
           errors[index] = 0; // Reset error after applying
         }
       }
 
-      // If using error diffusion, diffuse the "modification" to neighboring pixels
       if (useErrorDiffusion) {
         const neighbors = [
           index - 1,
@@ -76,7 +72,8 @@ export const useGenerateRandomSequence = () => {
           index + width,
         ].filter((n) => n >= 0 && n < totalPixels);
         neighbors.forEach((n) => {
-          errors[n] += Math.random() * 0.5 - 0.25; // Randomly adjust neighbors' error within a small range
+          const adjustment = secureRandomInt(-25, 25, hash, n) / 100; // Improved error diffusion
+          errors[n] += adjustment;
         });
       }
 
