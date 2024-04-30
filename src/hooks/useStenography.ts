@@ -1,61 +1,10 @@
-import seedrandom from 'seedrandom';
 import useEncryption from './useEncryption';
+import { useGenerateRandomSequence } from './useGenerateRandomSequence';
 
-// Generates a random sequence for pixel manipulation based on a seed key
-export const generateRandomSequence = (
-  width: number,
-  height: number,
-  pixelKey: string,
-  useMultipleBits: boolean = false,
-  useErrorDiffusion: boolean = false,
-): [number, number, string, number][] => {
-  const rng = seedrandom(pixelKey);
-  const totalPixels = width * height;
-  const pixelIndices = Array.from({ length: totalPixels }, (_, index) => index);
-  const channels = ['red', 'green', 'blue'];
-
-  // Randomize pixel indices using the Fisher-Yates shuffle algorithm
-  for (let i = totalPixels - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [pixelIndices[i], pixelIndices[j]] = [pixelIndices[j], pixelIndices[i]];
-  }
-
-  const errors = new Array(totalPixels).fill(0); // Error array to store diffusion effects
-
-  return pixelIndices.map((index) => {
-    const x = index % width;
-    const y = Math.floor(index / width);
-    const randomChannel = channels[Math.floor(rng() * channels.length)];
-
-    let bitPosition = 0;
-    if (useMultipleBits) {
-      bitPosition = Math.floor(rng() * 8);
-      if (useErrorDiffusion) {
-        // Apply error diffusion: adjust bit position based on accumulated error
-        const error = errors[index];
-        bitPosition = Math.max(0, Math.min(7, bitPosition + error));
-        errors[index] = 0; // Reset error after applying
-      }
-    }
-
-    // If using error diffusion, diffuse the "modification" to neighboring pixels
-    if (useErrorDiffusion) {
-      const neighbors = [
-        index - 1,
-        index + 1,
-        index - width,
-        index + width,
-      ].filter((i) => i >= 0 && i < totalPixels);
-      neighbors.forEach((n) => {
-        errors[n] += rng() * 0.5 - 0.25; // Randomly adjust neighbors' error within a small range
-      });
-    }
-
-    return [x, y, randomChannel, bitPosition];
-  });
-};
 export const useSteganography = () => {
   const { encryptText, decryptText } = useEncryption();
+
+  const { generateRandomSequence } = useGenerateRandomSequence();
 
   const hideTextInImage = async (
     image: File,
