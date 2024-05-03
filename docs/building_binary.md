@@ -8,6 +8,12 @@ To build the application as a standalone binary using Electron, run:
 yarn electron:build
 ```
 
+To test the application before building, run:
+
+```bash
+yarn electron:start
+```
+
 ### Electron app on Windows
 
 If on windows, make sure you run Git Bash as an administrator before running the build command.
