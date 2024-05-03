@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-// electron.js
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
-const isDev = require('electron-is-dev');
+// Using ES module import statements
+import { app, BrowserWindow } from 'electron';
+import isDev from 'electron-is-dev';
+import path from 'path';
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -11,24 +10,29 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,
-      enableRemoteModule: true,
     },
   });
 
-  const appURL = isDev
+  const startURL = isDev
     ? 'http://localhost:5173'
-    : `file://${path.join(__dirname, 'dist/index.html')}`;
-  mainWindow.loadURL(appURL);
+    : `file://${path.join(__dirname, '../dist/index.html')}`;
+  mainWindow.loadURL(startURL);
 
-  mainWindow.on('closed', () => app.quit());
+  mainWindow.on('closed', () => {
+    app.quit();
+  });
 }
 
-app.whenReady().then(createWindow);
+app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
 
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });
