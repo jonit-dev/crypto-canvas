@@ -8,14 +8,14 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="
-    default-src * data: blob: 'unsafe-inline' 'unsafe-eval';
-    script-src * data: blob: 'unsafe-inline' 'unsafe-eval';
-    style-src * data: blob: 'unsafe-inline' 'unsafe-eval';
-    img-src * data: blob: 'unsafe-inline';
-    font-src * data: blob: 'unsafe-inline';
-    connect-src * data: blob: 'unsafe-inline';
-    frame-src * data: blob: 'unsafe-inline';
-    object-src * data: blob: 'unsafe-inline';
+    default-src 'self';
+    script-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' blob:;
+    font-src 'self';
+    connect-src 'self';  /* Modify if your application makes API calls to external services */
+    frame-src 'none';   /* Adjust if you need to embed external content like iframes */
+    object-src 'none';
 "
     />
   </head>
