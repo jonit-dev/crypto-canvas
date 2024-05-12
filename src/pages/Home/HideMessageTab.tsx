@@ -145,7 +145,15 @@ export const HideMessageTab = () => {
       modalStore.setModal({
         type: 'error',
         title: 'Error',
-        message: 'An error occurred while hiding the message in the image.',
+        message: (
+          <>
+            <p>An error occurred while hiding the message in the image</p>
+            <p>
+              <strong>Error:</strong>
+              <pre>{err.message}</pre>
+            </p>
+          </>
+        ),
       });
     } finally {
       loadingStore.setLoading(false);
