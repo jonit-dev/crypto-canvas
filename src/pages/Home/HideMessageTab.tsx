@@ -150,7 +150,7 @@ export const HideMessageTab = () => {
             <p>An error occurred while hiding the message in the image</p>
             <p>
               <strong>Error:</strong>
-              <pre>{err.message}</pre>
+              <span>{err.message}</span>
             </p>
           </>
         ),
