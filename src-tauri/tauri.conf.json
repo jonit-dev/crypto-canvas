@@ -58,7 +58,7 @@
         "height": 600,
         "resizable": true,
         "title": "CryptoCanvas",
-        "width": 800
+        "width": 1024
       }
     ]
   }
