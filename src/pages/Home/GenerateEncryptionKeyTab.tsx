@@ -3,6 +3,7 @@ import { Button, Card, Input } from 'react-daisyui';
 import { AlertMessage } from '../../components/AlertMessage';
 import { useGenerateEncryptionKey } from '../../hooks/useGenerateEncryption';
 import { loadingStore } from '../../store/LoadingStore';
+import { modalStore } from '../../store/ModalStore';
 
 export const GenerateEncryptionKeyTab = () => {
   const { generateKey, encryptionKey, pixelKey, downloadKey } =
@@ -18,6 +19,13 @@ export const GenerateEncryptionKeyTab = () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       generateKey(encryptionKeyPassword);
+
+      modalStore.setModal({
+        type: 'success',
+        title: 'Success',
+        message:
+          'Key generated successfully. It should be on ~/Downloads folder.',
+      });
     } catch (error) {
       console.error(error);
     }
