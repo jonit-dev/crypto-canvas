@@ -15,9 +15,17 @@ const statusIcons = {
   warning: <ExclamationTriangleIcon className="w-6 h-6 stroke-warning" />,
 };
 
-export const AlertMessage: React.FC<IAlertMessage> = ({ status, message }) => {
+interface IProps extends IAlertMessage {
+  className?: string;
+}
+
+export const AlertMessage: React.FC<IProps> = ({
+  status,
+  message,
+  className,
+}) => {
   return (
-    <Alert icon={statusIcons[status]} status={status}>
+    <Alert icon={statusIcons[status]} status={status} className={className}>
       <span>{message}</span>
     </Alert>
   );

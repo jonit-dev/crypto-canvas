@@ -11,9 +11,7 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
   const [seedPhrase, setSeedPhrase] = useState('');
   const [privateKey, setPrivateKey] = useState('');
   const [password, setPassword] = useState('');
-  const [revertedSeedPhrase, setRevertedSeedPhrase] = useState<string | null>(
-    null,
-  );
+
   const [action, setAction] = useState<'generate' | 'revert'>('generate');
 
   const [inputCoordinates, setInputCoordinates] = useState<string>('');
@@ -72,8 +70,6 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
         ),
         type: 'info',
       });
-
-      setRevertedSeedPhrase(revertedSeedPhrase);
     } else {
       modalStore.setModal({
         type: 'error',
@@ -150,6 +146,11 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
         status="warning"
         message="This tool generates BIP39 coordinates from a seed phrase, private key, and password. 
                  MAKE SURE TO TRY TO REVERT THE COORDINATES TO VERIFY THAT THEY ARE CORRECT! If you misspell your password or try a different key, you'll get different results."
+      />
+      <AlertMessage
+        status="info"
+        className="mt-4"
+        message="The goal of this tool is to output a non-sensitive representation of your seed phrase that can be easily stored in a physical object, like a piece of paper or a metal plate (recommended)."
       />
 
       <FileInputWithLabel
