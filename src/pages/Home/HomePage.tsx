@@ -58,7 +58,7 @@ export const HomePage: React.FC = observer(() => {
     });
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 dark:bg-dark-bg">
-      <div className="max-w-4xl w-full">
+      <div className="max-w-5xl w-full">
         <Tabs variant="boxed" size="md">
           {onRenderTab()}
         </Tabs>

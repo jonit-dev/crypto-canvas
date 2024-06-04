@@ -48,6 +48,8 @@ export const useGenerateEncryptionKey = () => {
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
+
+    return url;
   };
 
   const extractKeys = (
