@@ -88,7 +88,9 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
             message="Make sure to try to revert the coordinates to verify that they are correct!"
           />
 
-          <p>Your BIP39 coordinates have been generated successfully.</p>
+          <p className="mt-4 mb-4">
+            Your BIP39 coordinates have been generated successfully.
+          </p>
           <p className="mb-4">Click on it to copy.</p>
           <Kbd onClick={() => handleCopyToClipboard(coordinates.join(', '))}>
             {coordinates.join(', ')}
@@ -105,19 +107,21 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
     modalStore.setModal({
       title: 'Seed Phrase Reverted',
       message: (
-        <p>
+        <>
           <AlertMessage
             status="warning"
             message="If this seed phrase is not the one you expected, please check your private key and password."
           />
 
-          <p>Your seed phrase has been reverted successfully.</p>
+          <p className="mt-4 mb-4">
+            Your seed phrase has been reverted successfully.
+          </p>
 
           <p className="mb-4">Click on it to copy.</p>
           <Kbd onClick={() => handleCopyToClipboard(revertedSeedPhrase)}>
             {revertedSeedPhrase}
           </Kbd>
-        </p>
+        </>
       ),
       type: 'info',
     });
@@ -149,7 +153,7 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
       <AlertMessage
         status="warning"
         message="This tool generates BIP39 coordinates from a seed phrase, private key, and password. 
-                 MAKE SURE TO TRY TO REVERT THE COORDINATES TO VERIFY THAT THEY ARE CORRECT! If you misspell your password or try a different key, you'll get different results"
+                 MAKE SURE TO TRY TO REVERT THE COORDINATES TO VERIFY THAT THEY ARE CORRECT! If you misspell your password or try a different key, you'll get different results."
       />
 
       <FileInputWithLabel

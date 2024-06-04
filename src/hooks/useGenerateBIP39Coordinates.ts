@@ -39,7 +39,14 @@ export const useGenerateBIP39Coordinates = () => {
         return bip39.wordlists.english[wordIndex];
       });
 
-      return unscrambledWords.join(' ');
+      const seedPhrase = unscrambledWords.join(' ');
+
+      // Check if the seed phrase is valid
+      if (!bip39.validateMnemonic(seedPhrase)) {
+        throw new Error('Invalid password');
+      }
+
+      return seedPhrase;
     } catch (error) {
       console.error('Error reverting coordinates:', error);
       return null;
