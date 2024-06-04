@@ -8,7 +8,7 @@ This diagram outlines a comprehensive seed backup strategy for you, focusing on 
 
 1. **Preparation**:
 
-   - **Use a Linux Machine**: Preferably use a Linux machine (e.g., Mint) to avoid Windows malware risks. If using Windows, ensure your antivirus is up to date.
+   - **Use a Linux Machine**: We highly recommend you use a Linux machine (e.g., Mint) to avoid Windows malware risks. If using Windows, ensure your antivirus is up to date.
    - **Disconnect from the Internet**: Do not connect to the internet while performing this operation to minimize risks.
    - **Use a virtual keyboard to type**: Use the Windows Virtual Keyboard to type sensitive information securely.
    - **Make sure you bought the wallet from a trusted source**: Ensure your hardware wallet is from the official provider (eg. Ledger or Trezor) to avoid tampering risks.
