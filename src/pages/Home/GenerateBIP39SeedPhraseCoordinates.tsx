@@ -51,6 +51,28 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
         return;
       }
 
+      modalStore.setModal({
+        title: 'Seed Phrase Reverted',
+        message: (
+          <>
+            <AlertMessage
+              status="warning"
+              message="If this seed phrase is not the one you expected, please check your private key and password."
+            />
+
+            <p className="mt-4 mb-4">
+              Your seed phrase has been reverted successfully.
+            </p>
+
+            <p className="mb-4">Click on it to copy.</p>
+            <Kbd onClick={() => handleCopyToClipboard(revertedSeedPhrase)}>
+              {revertedSeedPhrase}
+            </Kbd>
+          </>
+        ),
+        type: 'info',
+      });
+
       setRevertedSeedPhrase(revertedSeedPhrase);
     } else {
       modalStore.setModal({
@@ -100,32 +122,6 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
       type: 'info',
     });
   }, [coordinates]);
-
-  useEffect(() => {
-    if (!revertedSeedPhrase) return;
-
-    modalStore.setModal({
-      title: 'Seed Phrase Reverted',
-      message: (
-        <>
-          <AlertMessage
-            status="warning"
-            message="If this seed phrase is not the one you expected, please check your private key and password."
-          />
-
-          <p className="mt-4 mb-4">
-            Your seed phrase has been reverted successfully.
-          </p>
-
-          <p className="mb-4">Click on it to copy.</p>
-          <Kbd onClick={() => handleCopyToClipboard(revertedSeedPhrase)}>
-            {revertedSeedPhrase}
-          </Kbd>
-        </>
-      ),
-      type: 'info',
-    });
-  }, [revertedSeedPhrase]);
 
   const onLoadKeyFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target?.files || e.target.files.length === 0) {
