@@ -12,7 +12,8 @@ This application allows you to hide encrypted messages within images using stega
 
 ## Table Of Contentes
 
-- [Getting Started](./docs/getting_started.md)
+- [Getting Started]()
+- [Running Locally](./docs/running-locally.md)
 - [Key Management](./docs/key_management.md)
 - [Technical Details](./docs/technical_details.md)
 - [Use Cases](./docs/use_cases.md)
