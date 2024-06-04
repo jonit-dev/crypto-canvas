@@ -149,8 +149,7 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
       <AlertMessage
         status="warning"
         message="This tool generates BIP39 coordinates from a seed phrase, private key, and password. 
-                 Click the button below to generate and copy them. Remember to keep your
-                 seed phrase, private key, and password safe and never share them with anyone."
+                 MAKE SURE TO TRY TO REVERT THE COORDINATES TO VERIFY THAT THEY ARE CORRECT! If you misspell your password or try a different key, you'll get different results"
       />
 
       <FileInputWithLabel
