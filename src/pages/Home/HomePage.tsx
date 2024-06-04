@@ -9,30 +9,30 @@ import { HideMessageTab } from './HideMessageTab';
 
 const TAB_CONTENTS = [
   {
-    id: 0,
-    title: 'Hide Message',
-    component: <HideMessageTab />,
-  },
-  {
     id: 1,
-    title: 'Extract Message',
-    component: <ExtractMessageTab />,
-  },
-  {
-    id: 2,
     title: 'Generate Encryption Key',
     component: <GenerateEncryptionKeyTab />,
   },
-
   {
-    id: 3,
+    id: 2,
     title: 'Generate Seed Phrase',
     component: <GenerateSeedPhraseTab />,
   },
   {
-    id: 4,
+    id: 3,
     title: 'BIP39 Coordinates Seed Phrase',
     component: <GenerateBIP39SeedPhraseCoordinates />,
+  },
+
+  {
+    id: 4,
+    title: 'Hide Message',
+    component: <HideMessageTab />,
+  },
+  {
+    id: 5,
+    title: 'Extract Message',
+    component: <ExtractMessageTab />,
   },
 ];
 

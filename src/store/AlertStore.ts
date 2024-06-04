@@ -4,7 +4,7 @@ export type StatusType = 'success' | 'error' | 'info' | 'warning';
 
 export interface IAlertMessage {
   status: StatusType;
-  message: string;
+  message: string | React.ReactNode;
 }
 
 class AlertStore {

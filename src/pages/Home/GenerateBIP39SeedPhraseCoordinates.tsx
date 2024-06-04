@@ -144,13 +144,28 @@ export const GenerateBIP39SeedPhraseCoordinates = () => {
     <Card className="p-5">
       <AlertMessage
         status="warning"
-        message="This tool generates BIP39 coordinates from a seed phrase, private key, and password. 
-                 MAKE SURE TO TRY TO REVERT THE COORDINATES TO VERIFY THAT THEY ARE CORRECT! If you misspell your password or try a different key, you'll get different results."
-      />
-      <AlertMessage
-        status="info"
-        className="mt-4"
-        message="The goal of this tool is to output a non-sensitive representation of your seed phrase that can be easily stored in a physical object, like a piece of paper or a metal plate (recommended)."
+        message={
+          <>
+            <p>
+              The goal of this tool is to output a non-sensitive representation
+              of your seed phrase that can be easily stored in a physical
+              object, like a piece of paper or a metal plate (recommended).
+            </p>
+            <br />
+            <p>
+              MAKE SURE TO TRY TO REVERT THE COORDINATES TO VERIFY THAT THEY ARE
+              CORRECT! If you misspell your password or try a different key,
+              you'll get different results.
+            </p>
+
+            <br />
+
+            <p>
+              This do NOT work for the following non-BIP39 wallets: Monero,
+              Cardano, Tezos, Algorand, NEM, EOS, Stellar
+            </p>
+          </>
+        }
       />
 
       <FileInputWithLabel
