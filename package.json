@@ -13,8 +13,7 @@
     "electron:start": "concurrently \"yarn dev\" \"wait-on http://localhost:5173 && electron .\"",
     "preview": "vite preview",
     "test": "jest",
-    "tauri:generate-icons": "node ./environment/generate-tauri-icons.cjs",
-    "tauri:build": "yarn build && yarn tauri:generate-icons && yarn tauri build"
+    "tauri:build": "yarn build && yarn tauri build"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.3",
